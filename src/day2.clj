@@ -12,20 +12,14 @@
       combos
       (recur (inc i) (conj combos (remove-n i report))))))
 
-(defn decreasing? [report]
-  (apply > report))
-
-(defn increasing? [report]
-  (apply < report))
-
 (defn gradual? [report]
   (let [adj-lvls (partition 2 1 report)]
     (every? (fn [[a b]] (< 0 (abs (- a b)) 4)) adj-lvls)))
 
 (defn safe? [report]
   (and (gradual? report)
-       (or (increasing? report)
-           (decreasing? report))))
+       (or (apply < report)
+           (apply > report))))
 
 (defn dampened? [levels]
   (let [dampened (dampen levels)]
