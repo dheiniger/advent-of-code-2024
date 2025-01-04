@@ -42,20 +42,38 @@
         down-right (translate x y inc inc)]
     [forward backward upward downward up-left up-right down-left down-right]))
 
-(defn get-words [x y grid]
+(defn get-words [grid idxs]
   (map (fn [coords]
          (reduce (fn [acc [x y]] (str acc (get-letter x y grid))) "" coords))
-       (search-indices x y)))
+       idxs))
 
 (defn solve-a [grid]
   (let [words (apply concat
-         (map-indexed
-           (fn [x line]
-             (let [letters (map-indexed (fn [y _] (get-words x y grid)) line)]
-               (flatten letters))
-             ) grid))]
+                     (map-indexed
+                       (fn [x line]
+                         (let [letters (map-indexed (fn [y _] (get-words grid (search-indices x y))) line)]
+                           (flatten letters))
+                         ) grid))]
     (count (filter #(= "XMAS" %) words))))
+
+(defn- diag-idxs [x y]
+  (let [diag-right [[-1 -1] [0 0] [1 1]]
+        diag-left [[1 -1] [0 0] [-1 1]]
+        directions [diag-left diag-right (reverse diag-left) (reverse diag-right)]]
+    (map (fn [coords]
+           (map (fn [[x' y']] [(+ x x') (+ y y')]) coords))
+         directions)))
+
+(defn solve-b [grid]
+  (let [words (map-indexed (fn [y line]
+                             (map-indexed (fn [x c]
+                                            (when (= \A c)
+                                              (get-words grid (diag-idxs x y)))) line)) grid)]
+    (->> (mapcat frequencies (apply concat words))
+         (filter (fn [[word n]] (and (= "MAS" word) (= 2 n))))
+         count)))
 
 (comment
   (solve-a grid)
+  (solve-b grid)
   )
